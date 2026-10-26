@@ -1,0 +1,11 @@
+fastapi>=0.110
+uvicorn>=0.29
+httpx>=0.27
+prometheus-client>=0.20
+# 分布式限流（多实例共享计数）
+redis>=5.0
+# 异步事件（请求生命周期事件 -> Kafka；实现上依赖 aiokafka 的 asyncio 客户端）
+aiokafka>=0.10
+# 请求历史可切 PostgreSQL 时使用（SQLite 走标准库 sqlite3，无需依赖）
+psycopg[binary]>=3.1
+requests>=2.31

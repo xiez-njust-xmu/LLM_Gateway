@@ -1,0 +1,31 @@
+# Prometheus 配置：抓取 LLM Gateway 暴露的 /metrics
+#
+# 启动方式见 scripts/monitoring.sh（默认监听 0.0.0.0:9090）。
+# 数据、WAL 存放在 $MON_HOME/prometheus/data，配置通过 --config.file 指向本文件。
+
+global:
+  scrape_interval: 5s          # 演示环境抓密一点，便于观察曲线
+  scrape_timeout: 4s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: llm-gateway
+
+scrape_configs:
+  # 网关自身指标（自定义 gateway_* + process_* / python_*）
+  #
+  # 多实例集群：把 targets 列成多个实例（由 scripts/monitoring.sh 用 GATEWAY_TARGETS 渲染），
+  # 例如 ["localhost:8000", "localhost:8001", "localhost:8002"]。
+  # 不要写 nginx 负载均衡的地址 —— 那样所有样本的 instance 标签都会变成 LB，
+  # 既分不清是哪个实例，也会丢掉「单实例挂了」这类信息。所以 Prometheus 直连各实例。
+  - job_name: llm-gateway
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["__GATEWAY_TARGETS__"]
+        labels:
+          service: llm-gateway
+          env: local
+
+  # Prometheus 自身，便于排查抓取问题
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
